@@ -73,3 +73,28 @@ const addExerciseToWorkout = asyncHandler(async (req, res) => {
 });
 
 module.exports.addExerciseToWorkout = addExerciseToWorkout;
+
+// @desc    Delete a workout
+// @route   DELETE /api/workouts/:id
+// @access  Private
+const deleteWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    await workout.deleteOne();
+
+    // Remove workout reference from user
+    const user = await User.findById(req.user._id);
+    user.workouts = user.workouts.filter(
+        (wId) => wId.toString() !== req.params.id
+    );
+    await user.save();
+
+    res.status(200).json({ message: "Workout deleted successfully!" });
+});
+
+module.exports.deleteWorkout = deleteWorkout;
