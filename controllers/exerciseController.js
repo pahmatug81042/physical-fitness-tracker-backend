@@ -24,4 +24,14 @@ const getExerciseById = asyncHandler(async (req, res) => {
     res.json(exercise);
 });
 
-module.exports = { getExercises, getExerciseById };
+// @desc    Get exercises by body part
+// @route   GET /api/exercises/bodyPart/:bodyPart
+// @access  Public
+const getExercisesByBodyPart = asyncHandler(async (req, res) => {
+    const { bodyPart } = req.params;
+    const exercises = await apiClient.getExercisesByBodyPart(bodyPart);
+
+    res.json(exercises);
+});
+
+module.exports = { getExercises, getExerciseById, getExercisesByBodyPart };
