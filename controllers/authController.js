@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
-const { isAxiosError } = require("axios");
 
 // @desc    Register new user
 // @route   POST /api/auth/register

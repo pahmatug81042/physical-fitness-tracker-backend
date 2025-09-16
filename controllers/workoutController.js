@@ -31,6 +31,45 @@ const createWorkout = asyncHandler(async (req, res) => {
 
 module.exports.createWorkout = createWorkout;
 
+// @desc    Get single workout by ID
+// @route   GET /api/workouts/:id
+// @access  Private
+const getWorkoutById =  asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id)
+        .populate("exercises.exercise");
+    
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    res.json(200).json(workout);
+});
+
+module.exports.getWorkoutById = getWorkoutById;
+
+// @desc    Update workout (optional: update title, date, or add exercises)
+// @route   PUT /api/workouts/:id
+// @access  Private
+const updateWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    const { title, date } = req.body;
+
+    if (title) workout.title = title;
+    if (date) workout.date = date;
+
+    await workout.save();
+    res.status(200).json(workout);
+});
+
+module.exports.updateWorkout = updateWorkout;
+
 // @desc    Get all workouts for logged-in user
 // @route   GET /api/workouts
 // @access  Private

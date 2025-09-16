@@ -7,7 +7,7 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 // Load environment variables
 dotenv.config();
 
-// conect to MongoDB
+// Connect to MongoDB
 connectDB();
 
 // Initialize Express app
@@ -25,14 +25,14 @@ app.use("/api/exercises", require("./routes/exerciseRoutes"));
 app.use("/api/videos", require("./routes/videoRoutes"));
 app.use("/api/workouts", require("./routes/workoutRoutes"));
 
-// Error handling middleware
+// ✅ Root route (must be before error handlers)
+app.get("/", (req, res) => {
+    res.json({ message: "Fitness Tracker Backend is running" });
+});
+
+// Error handling middleware (must be last)
 app.use(notFound);
 app.use(errorHandler);
-
-// Root route
-app.get("/", (req, res) => {
-    res.send("Fitness Tracker Backend is running...");
-});
 
 // Start server
 const PORT = process.env.PORT || 5000;

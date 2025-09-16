@@ -31,7 +31,7 @@ const getExercisesByBodyPart = async (bodyPart) => {
 };
 
 // Fetch exercises by target muscle
-const getExerciseesByTarget = async (target) => {
+const getExercisesByTarget = async (target) => {
     const response = await axiosInstance.get(`/exercises/target/${target}`);
     response.data;
 };
@@ -42,4 +42,4 @@ const getExercisesByEquipment = async (equipment) => {
     return response.data;
 };
 
-module.exports = { getExercises, getExerciseById, getExercisesByBodyPart, getExerciseesByTarget, getExercisesByEquipment };
+module.exports = { getExercises, getExerciseById, getExercisesByBodyPart, getExercisesByTarget, getExercisesByEquipment };
