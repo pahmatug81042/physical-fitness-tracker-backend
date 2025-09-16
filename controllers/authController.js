@@ -53,4 +53,24 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { registerUser, loginUser };
+// @desc    Get current logged-in user
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = asyncHandler(async (req, res) => {
+    // req.user is set in authMiddleware after token verification
+    const user = await User.findById(req.user._id).populate('workouts');
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        workouts: user.workouts,
+    });
+});
+
+module.exports = { registerUser, loginUser, getMe };
