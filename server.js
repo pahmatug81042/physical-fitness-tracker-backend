@@ -29,6 +29,11 @@ app.use("/api/workouts", require("./routes/workoutRoutes"));
 app.use(notFound);
 app.use(errorHandler);
 
+// Root route
+app.get("/", (req, res) => {
+    res.send("Fitness Tracker Backend is running...");
+});
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
