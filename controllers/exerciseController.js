@@ -44,4 +44,14 @@ const getExerciseesByTarget = asyncHandler(async (req, res) => {
     res.json(exercises);
 });
 
-module.exports = { getExercises, getExerciseById, getExercisesByBodyPart, getExerciseesByTarget };
+// @desc    Get exercises by equipment
+// @route   GET /api/exercises/equipment/:equipment
+// @access  Public
+const getExercisesByEquipment = asyncHandler(async (req, res) => {
+    const { equipment } = req.params;
+    const exercises = await apiClient.getExercisesByEquipment(equipment);
+
+    res.json(exercises);
+});
+
+module.exports = { getExercises, getExerciseById, getExercisesByBodyPart, getExerciseesByTarget, getExercisesByEquipment };
