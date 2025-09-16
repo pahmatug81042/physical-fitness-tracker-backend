@@ -34,4 +34,14 @@ const getExercisesByBodyPart = asyncHandler(async (req, res) => {
     res.json(exercises);
 });
 
-module.exports = { getExercises, getExerciseById, getExercisesByBodyPart };
+// @desc    Get exercises by target muscle
+// @route   GET /api/exercises/target/:target
+// @access  Public
+const getExerciseesByTarget = asyncHandler(async (req, res) => {
+    const { target } = req.params;
+    const exercises = await apiClient.getExerciseesByTarget(target);
+
+    res.json(exercises);
+});
+
+module.exports = { getExercises, getExerciseById, getExercisesByBodyPart, getExerciseesByTarget };
