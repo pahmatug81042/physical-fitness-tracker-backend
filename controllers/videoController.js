@@ -15,3 +15,19 @@ const youtubeApi = axios.create({
 });
 
 module.exports = { youtubeApi };
+
+const fetchExerciseVideos = async (exerciseName) => {
+    try {
+        const response = await youtubeApi.get("/search", {
+            params: { query: `${exerciseName} exercise` },
+        });
+
+        // Return array of video contents or empty array
+        return response.data?.contents || [];
+    } catch (error) {
+        console.error("Error fetching exercise videos:", error.message);
+        return [];
+    }
+};
+
+module.exports.fetchExerciseVideos = fetchExerciseVideos;
