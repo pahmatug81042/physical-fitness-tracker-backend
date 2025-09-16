@@ -9,4 +9,19 @@ const getExercises = asyncHandler(async (req, res) => {
     res.json(exercises);
 });
 
-module.exports = { getExercises };
+// @desc    Get exercise details by ID
+// @route   GET /api/exercises/:id
+// @access  Public
+const getExerciseById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const exercise = await apiClient.getExerciseById(id);
+
+    if (!exercise) {
+        res.status(404);
+        throw new Error("Exercise not found");
+    }
+
+    res.json(exercise);
+});
+
+module.exports = { getExercises, getExerciseById };
