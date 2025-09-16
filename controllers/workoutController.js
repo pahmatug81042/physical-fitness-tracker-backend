@@ -43,3 +43,33 @@ const getWorkouts = asyncHandler(async (req, res) => {
 });
 
 module.exports.getWorkouts = getWorkouts;
+
+// @desc    Add exercise to workout
+// @route   PUT /api/workouts/:id/exercises
+// @access  Private
+const addExerciseToWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    const { exerciseId, sets, reps, duration } = req.body;
+
+    if (!exerciseId) {
+        res.status(400);
+        throw new Error("Please provide an exercise ID");
+    }
+
+    workout.exercises.push({
+        exercise: exerciseId,
+        sets: sets || 0,
+        reps: reps || 0,
+        duration: duration || 0,
+    });
+
+    await workout.save();
+    res.status(200).json(workout);
+});
+
+module.exports.addExerciseToWorkout = addExerciseToWorkout;
