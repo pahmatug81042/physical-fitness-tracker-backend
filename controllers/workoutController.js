@@ -3,4 +3,30 @@ const Workout = require("../models/Workout");
 const Exercise = require("../models/Exercise");
 const User = require("../models/User");
 
-module.exports = {};
+// @desc    Create new workout
+// @route   POST /api/workouts
+// @access  Private
+const createWorkout = asyncHandler(async (req, res) => {
+    const { title, date } = req.body;
+
+    if (!title) {
+        res.status(400);
+        throw new Error("Please add a title for the workout");
+    }
+
+    const workout = await Workout.create({
+        title,
+        date: date || new Date(),
+        user: req.user._id,
+        exercises: [],
+    });
+
+    // Add workout to user's workouts array
+    const user = await User.findById(req.user._id);
+    user.workouts.push(workout._id);
+    await user.save();
+
+    res.json(201).json(workout);
+});
+
+module.exports.createWorkout = createWorkout;
