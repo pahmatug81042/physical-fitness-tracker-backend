@@ -19,8 +19,13 @@ app.use(express.json());
 // Enable CORS for frontend communication
 app.use(cors({
     origin: 'https://mellow-sundae-34c9ef.netlify.app',
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Explicitly handle preflight OPTIONS requests for all routes
+app.options('*', cors());
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
