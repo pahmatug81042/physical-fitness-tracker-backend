@@ -18,7 +18,7 @@ const createWorkout = asyncHandler(async (req, res) => {
         title,
         date: date || new Date(),
         user: req.user._id,
-        exercises: [],
+        exercise: [],
     });
 
     // Add workout to user's workouts array
@@ -32,7 +32,7 @@ const createWorkout = asyncHandler(async (req, res) => {
 // @access  Private
 const getWorkoutById = asyncHandler(async (req, res) => {
     const workout = await Workout.findById(req.params.id)
-        .populate("exercises.exercise");
+        .populate("exercise.exercise");
 
     if (!workout) {
         res.status(404);
@@ -66,7 +66,7 @@ const updateWorkout = asyncHandler(async (req, res) => {
 // @access  Private
 const getWorkouts = asyncHandler(async (req, res) => {
     const workouts = await Workout.find({ user: req.user._id })
-        .populate("exercises.exercise")
+        .populate("exercise.exercise")
         .sort({ date: -1 });
     
     res.status(200).json(workouts);
@@ -96,7 +96,7 @@ const addExerciseToWorkout = asyncHandler(async (req, res) => {
         throw new Error("Exercise not found");
     }
 
-    workout.exercises.push({
+    workout.exercise.push({
         exercise: exercise._id,
         sets: sets || 0,
         reps: reps || 0,
