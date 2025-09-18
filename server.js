@@ -17,7 +17,10 @@ const app = express();
 app.use(express.json());
 
 // Enable CORS for frontend communication
-app.use(cors());
+app.use(cors({
+    origin: 'https://mellow-sundae-34c9ef.netlify.app',
+    credentials: true
+}));
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
