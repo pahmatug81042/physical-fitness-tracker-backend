@@ -1,81 +1,140 @@
-import React, { useEffect, useState } from "react";
-import { getWorkouts } from "../services/workoutService";
+const asyncHandler = require("express-async-handler");
+const Workout = require("../models/Workout");
+const Exercise = require("../models/Exercise");
+const User = require("../models/User");
 
-/**
- * WorkoutList component
- * Renders the user's workouts and their exercises.
- * Accepts an optional refreshKey prop to re-fetch workouts when something changes (e.g., new workout added).
- */
-export default function WorkoutList({ refreshKey = 0 }) {
-  const [workouts, setWorkouts] = useState([]);
+// @desc    Create new workout
+// @route   POST /api/workouts
+// @access  Private
+const createWorkout = asyncHandler(async (req, res) => {
+    const { title, date } = req.body;
 
-  const loadWorkouts = async () => {
-    try {
-      const data = await getWorkouts();
-      setWorkouts(data);
-    } catch (error) {
-      console.error("Failed to load workouts:", error);
+    if (!title) {
+        res.status(400);
+        throw new Error("Please add a title for the workout");
     }
-  };
 
-  useEffect(() => {
-    loadWorkouts();
-  }, [refreshKey]); // Re-fetch workouts whenever refreshKey changes
+    const workout = await Workout.create({
+        title,
+        date: date || new Date(),
+        user: req.user._id,
+        exercise: [],
+    });
 
-  if (!workouts || workouts.length === 0) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h2>Your Workouts</h2>
-        <p>No workouts yet. Create one to get started!</p>
-      </div>
+    // Add workout to user's workouts array
+    const user = await User.findById(req.user._id);
+    user.workouts.push(workout._id);
+    await user.save();
+});
+
+// @desc    Get single workout by ID
+// @route   GET /api/workouts/:id
+// @access  Private
+const getWorkoutById = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id)
+        .populate("exercise.exercise");
+
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    res.status(200).json(workout);
+});
+
+// @desc    Update workout (optional: update title, date)
+// @route   PUT /api/workouts/:id
+// @access  Private
+const updateWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    const { title, date } = req.body;
+    if (title) workout.title = title;
+    if (date) workout.date = date;
+
+    await workout.save();
+    res.status(200).json(workout);
+});
+
+// @desc    Get all workouts for logged-in user
+// @route   GET /api/workouts
+// @access  Private
+const getWorkouts = asyncHandler(async (req, res) => {
+    const workouts = await Workout.find({ user: req.user._id })
+        .populate("exercise.exercise")
+        .sort({ date: -1 });
+    
+    res.status(200).json(workouts);
+});
+
+// @desc    Add exercise to workout
+// @route   PUT /api/workouts/:id/exercises
+// @access  Private
+const addExerciseToWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    const { exerciseId, sets, reps, duration } = req.body;
+
+    if (!exerciseId) {
+        res.status(400);
+        throw new Error("Please provide an exercise ID");
+    }
+
+    // Ensure the exercise exists
+    const exercise = await Exercise.findById(exerciseId);
+    if (!exercise) {
+        res.status(404);
+        throw new Error("Exercise not found");
+    }
+
+    workout.exercise.push({
+        exercise: exercise._id,
+        sets: sets || 0,
+        reps: reps || 0,
+        duration: duration || 0,
+    });
+
+    await workout.save();
+    res.status(200).json(workout);
+});
+
+// @desc    Delete a workout
+// @route   DELETE /api/workouts/:id
+// @access  Private
+const deleteWorkout = asyncHandler(async (req, res) => {
+    const workout = await Workout.findById(req.params.id);
+
+    if (!workout) {
+        res.status(404);
+        throw new Error("Workout not found");
+    }
+
+    await workout.deleteOne();
+
+    // Remove workout reference from user
+    const user = await User.findById(req.user._id);
+    user.workouts = user.workouts.filter(
+        (wId) => wId.toString() !== req.params.id
     );
-  }
+    await user.save();
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Your Workouts</h2>
-      {workouts.map((workout) => (
-        <div
-          key={workout._id}
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: 12,
-            marginBottom: 12,
-            backgroundColor: "#f9f9f9",
-          }}
-        >
-          <h3>{workout.title}</h3>
-          <p>
-            Date:{" "}
-            {workout.date
-              ? new Date(workout.date).toLocaleDateString()
-              : "No date set"}
-          </p>
-          <div>
-            {workout.exercises && workout.exercises.length > 0 ? (
-              workout.exercises.map((ex, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: 6,
-                    borderBottom: "1px solid #eee",
-                    fontSize: 14,
-                  }}
-                >
-                  <strong>{ex.exercise?.name || "Unnamed Exercise"}</strong> |{" "}
-                  Sets: {ex.sets ?? 0} | Reps: {ex.reps ?? 0} | Duration:{" "}
-                  {ex.duration ?? 0} min
-                </div>
-              ))
-            ) : (
-              <p style={{ fontStyle: "italic", fontSize: 14 }}>
-                No exercises added yet.
-              </p>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+    res.status(200).json({ message: "Workout deleted successfully!" });
+});
+
+module.exports = {
+    createWorkout,
+    getWorkoutById,
+    updateWorkout,
+    getWorkouts,
+    addExerciseToWorkout,
+    deleteWorkout,
+};
