@@ -57,11 +57,13 @@ const loginUser = asyncHandler(async (req, res) => {
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
     // req.user is set in authMiddleware after token verification
+    if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
     const user = await User.findById(req.user._id).populate('workouts');
 
     if (!user) {
-        res.status(404);
-        throw new Error('User not found');
+        return res.status(404).json({ message: 'User not found' });
     }
 
     res.json({
