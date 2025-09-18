@@ -24,9 +24,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Explicitly handle preflight OPTIONS requests for all routes
-app.options('*', cors());
-
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/exercises", require("./routes/exerciseRoutes"));
