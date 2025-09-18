@@ -17,25 +17,35 @@ const app = express();
 app.use(express.json());
 
 // ✅ Configure CORS with allowed origins from .env
-// Example in .env: ALLOWED_ORIGINS=http://localhost:5173,https://your-netlify-app.netlify.app
+// Example in .env:
+// ALLOWED_ORIGINS=http://localhost:5173,https://profound-sunshine-034413.netlify.app
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow Postman/cURL
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// Custom CORS middleware to always return headers for allowed origins
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type,Authorization"
+    );
+  }
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -43,7 +53,7 @@ app.use("/api/exercises", require("./routes/exerciseRoutes"));
 app.use("/api/videos", require("./routes/videoRoutes"));
 app.use("/api/workouts", require("./routes/workoutRoutes"));
 
-// ✅ Root route
+// Root route
 app.get("/", (req, res) => {
   res.json({ message: "Fitness Tracker Backend is running" });
 });
