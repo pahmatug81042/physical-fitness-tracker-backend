@@ -3,7 +3,8 @@ const router = express.Router();
 const { getExercises, getExerciseById, getExercisesByBodyPart, getExercisesByTarget, getExercisesByEquipment } = require("../controllers/exerciseController");
 const { protect } = require("../middleware/authMiddleware");
 
-// Public routes
+router.use(protect);
+
 router.get("/", getExercises);
 router.get("/:id", getExerciseById);
 router.get("/bodyPart/:bodyPart", getExercisesByBodyPart);
