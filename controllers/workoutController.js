@@ -25,30 +25,24 @@ const createWorkout = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     user.workouts.push(workout._id);
     await user.save();
-
-    res.json(201).json(workout);
 });
-
-module.exports.createWorkout = createWorkout;
 
 // @desc    Get single workout by ID
 // @route   GET /api/workouts/:id
 // @access  Private
-const getWorkoutById =  asyncHandler(async (req, res) => {
+const getWorkoutById = asyncHandler(async (req, res) => {
     const workout = await Workout.findById(req.params.id)
         .populate("exercises.exercise");
-    
+
     if (!workout) {
         res.status(404);
         throw new Error("Workout not found");
     }
 
-    res.json(200).json(workout);
+    res.status(200).json(workout);
 });
 
-module.exports.getWorkoutById = getWorkoutById;
-
-// @desc    Update workout (optional: update title, date, or add exercises)
+// @desc    Update workout (optional: update title, date)
 // @route   PUT /api/workouts/:id
 // @access  Private
 const updateWorkout = asyncHandler(async (req, res) => {
@@ -60,15 +54,12 @@ const updateWorkout = asyncHandler(async (req, res) => {
     }
 
     const { title, date } = req.body;
-
     if (title) workout.title = title;
     if (date) workout.date = date;
 
     await workout.save();
     res.status(200).json(workout);
 });
-
-module.exports.updateWorkout = updateWorkout;
 
 // @desc    Get all workouts for logged-in user
 // @route   GET /api/workouts
@@ -77,11 +68,9 @@ const getWorkouts = asyncHandler(async (req, res) => {
     const workouts = await Workout.find({ user: req.user._id })
         .populate("exercises.exercise")
         .sort({ date: -1 });
-
+    
     res.status(200).json(workouts);
 });
-
-module.exports.getWorkouts = getWorkouts;
 
 // @desc    Add exercise to workout
 // @route   PUT /api/workouts/:id/exercises
@@ -100,8 +89,15 @@ const addExerciseToWorkout = asyncHandler(async (req, res) => {
         throw new Error("Please provide an exercise ID");
     }
 
+    // Ensure the exercise exists
+    const exercise = await Exercise.findById(exerciseId);
+    if (!exercise) {
+        res.status(404);
+        throw new Error("Exercise not found");
+    }
+
     workout.exercises.push({
-        exercise: exerciseId,
+        exercise: exercise._id,
         sets: sets || 0,
         reps: reps || 0,
         duration: duration || 0,
@@ -110,8 +106,6 @@ const addExerciseToWorkout = asyncHandler(async (req, res) => {
     await workout.save();
     res.status(200).json(workout);
 });
-
-module.exports.addExerciseToWorkout = addExerciseToWorkout;
 
 // @desc    Delete a workout
 // @route   DELETE /api/workouts/:id
@@ -136,4 +130,11 @@ const deleteWorkout = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Workout deleted successfully!" });
 });
 
-module.exports.deleteWorkout = deleteWorkout;
+module.exports = {
+    createWorkout,
+    getWorkoutById,
+    updateWorkout,
+    getWorkouts,
+    addExerciseToWorkout,
+    deleteWorkout,
+};
