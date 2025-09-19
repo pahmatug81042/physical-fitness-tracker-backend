@@ -4,6 +4,16 @@ This is the backend server for the **Fitness Tracker** full stack application. I
 
 ---
 
+Here's the GitHub Repository for Frontend using React + Vite + JavaScript, and Vanilla CSS: https://github.com/pahmatug81042/physical-fitness-tracker-frontend/tree/main
+
+---
+
+Here is the deployed backend on Render: https://physical-fitness-tracker-backend.onrender.com/
+
+* Important Note: It will take a few minutes for the server to wake up if it was left idle for sometime to cause it to go to sleep so please beware of that.
+
+---
+
 ## Features
 
 - **User Authentication**
