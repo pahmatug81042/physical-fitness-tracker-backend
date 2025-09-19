@@ -33,39 +33,74 @@ const createWorkout = asyncHandler(async (req, res) => {
 // @route PUT /api/workouts/:id/exercises
 // @access Private
 const addExerciseToWorkout = asyncHandler(async (req, res) => {
-  let localExercise;
-
-// 1. First try ObjectId
-try {
-  localExercise = await Exercise.findById(exerciseId);
-} catch {
-  localExercise = null;
-}
-
-// 2. If not found, try by externalId
-if (!localExercise && exerciseId) {
-  localExercise = await Exercise.findOne({ externalId: exerciseId });
-}
-
-// 3. If still not found, create it
-if (!localExercise) {
-  if (!name || !bodyPart || !target || !equipment) {
-    res.status(400);
-    throw new Error("Missing exercise data to save new exercise");
-  }
-
-  localExercise = await Exercise.create({
+  const workoutId = req.params.id;
+  const {
+    exerciseId,
     name,
     bodyPart,
     target,
     equipment,
     gifUrl,
-    externalId: exerciseId, // ✅ store it!
+    sets,
+    reps,
+    duration,
+  } = req.body;
+
+  if (!exerciseId) {
+    res.status(400);
+    throw new Error("exerciseId is required");
+  }
+
+  // Find the workout by id and user for security
+  const workout = await Workout.findOne({ _id: workoutId, user: req.user._id });
+  if (!workout) {
+    res.status(404);
+    throw new Error("Workout not found");
+  }
+
+  // Try find existing Exercise by _id
+  let localExercise = null;
+  try {
+    localExercise = await Exercise.findById(exerciseId);
+  } catch {}
+
+  // If not found by _id, try find by externalId
+  if (!localExercise) {
+    localExercise = await Exercise.findOne({ externalId: exerciseId });
+  }
+
+  // If still not found, create it
+  if (!localExercise) {
+    if (!name || !bodyPart || !target || !equipment) {
+      res.status(400);
+      throw new Error("Missing exercise data to save new exercise");
+    }
+    localExercise = await Exercise.create({
+      name,
+      bodyPart,
+      target,
+      equipment,
+      gifUrl,
+      externalId: exerciseId,
+    });
+  }
+
+  // Add the exercise to the workout's exercises array
+  workout.exercise.push({
+    exercise: localExercise._id,
+    sets: sets || 0,
+    reps: reps || 0,
+    duration: duration || 0,
   });
-}
+
+  await workout.save();
+
+  res.status(200).json(workout);
 });
 
-// Other unchanged routes...
+// @desc Get all workouts for logged-in user
+// @route GET /api/workouts
+// @access Private
 const getWorkouts = asyncHandler(async (req, res) => {
   const workouts = await Workout.find({ user: req.user._id })
     .populate("exercise.exercise")
@@ -74,9 +109,13 @@ const getWorkouts = asyncHandler(async (req, res) => {
   res.status(200).json(workouts);
 });
 
+// @desc Get single workout by ID
+// @route GET /api/workouts/:id
+// @access Private
 const getWorkoutById = asyncHandler(async (req, res) => {
-  const workout = await Workout.findById(req.params.id)
-    .populate("exercise.exercise");
+  const workout = await Workout.findById(req.params.id).populate(
+    "exercise.exercise"
+  );
 
   if (!workout) {
     res.status(404);
@@ -86,6 +125,9 @@ const getWorkoutById = asyncHandler(async (req, res) => {
   res.status(200).json(workout);
 });
 
+// @desc Update workout (title/date)
+// @route PUT /api/workouts/:id
+// @access Private
 const updateWorkout = asyncHandler(async (req, res) => {
   const workout = await Workout.findById(req.params.id);
 
@@ -102,6 +144,9 @@ const updateWorkout = asyncHandler(async (req, res) => {
   res.status(200).json(workout);
 });
 
+// @desc Delete workout
+// @route DELETE /api/workouts/:id
+// @access Private
 const deleteWorkout = asyncHandler(async (req, res) => {
   const workout = await Workout.findById(req.params.id);
   if (!workout) {
@@ -112,7 +157,7 @@ const deleteWorkout = asyncHandler(async (req, res) => {
   await workout.deleteOne();
 
   const user = await User.findById(req.user._id);
-  user.workouts = user.workouts.filter(w => w.toString() !== req.params.id);
+  user.workouts = user.workouts.filter((w) => w.toString() !== req.params.id);
   await user.save();
 
   res.status(200).json({ message: "Workout deleted successfully!" });
