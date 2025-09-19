@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 // Define Exercise schema
 const exerciseSchema = new mongoose.Schema(
     {
+        externalId: {
+            type: String,
+            unique: true,
+            sparse: true, // So local exercises without externalId don't cause uniqueness errors
+        },
         name: {
             type: String,
             required: true,
