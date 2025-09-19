@@ -16,36 +16,27 @@ const app = express();
 // Enable JSON parsing
 app.use(express.json());
 
-// ✅ Configure CORS with allowed origins from .env
-// Example in .env:
-// ALLOWED_ORIGINS=http://localhost:5173,https://profound-sunshine-034413.netlify.app
+// Parse allowed origins from environment
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [];
 
-// Custom CORS middleware to always return headers for allowed origins
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS"
-    );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Content-Type,Authorization"
-    );
-  }
+// Configure CORS middleware
+const corsOptions = {
+  origin: function (origin, callback) {
+    // allow requests with no origin like mobile apps or curl
+    if (!origin) return callback(null, true);
 
-  // Handle preflight requests
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy violation: Origin not allowed"));
+    }
+  },
+  credentials: true,
+};
 
-  next();
-});
+app.use(cors(corsOptions));
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
