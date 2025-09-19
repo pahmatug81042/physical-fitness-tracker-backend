@@ -34,7 +34,7 @@ router
 
 // New routes for updating/deleting an exercise inside a workout
 router
-  .route("/:workoutId/exercises/:index")
+  .route("/:workoutId/exercises/:exerciseId")  // Change from :index to :exerciseId
   .put(updateExerciseInWorkout)      // Update exercise in workout
   .delete(deleteExerciseFromWorkout); // Delete exercise from workout
 
