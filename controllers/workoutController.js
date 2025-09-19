@@ -165,10 +165,10 @@ const deleteWorkout = asyncHandler(async (req, res) => {
 
 // ** New: Update an exercise in a workout **
 // @desc Update an exercise in a workout
-// @route PUT /api/workouts/:workoutId/exercises/:index
+// @route PUT /api/workouts/:workoutId/exercises/:exerciseId
 // @access Private
 const updateExerciseInWorkout = asyncHandler(async (req, res) => {
-  const { workoutId, index } = req.params;
+  const { workoutId, exerciseId } = req.params;
   const { sets, reps, duration } = req.body;
 
   const workout = await Workout.findOne({ _id: workoutId, user: req.user._id });
@@ -177,15 +177,21 @@ const updateExerciseInWorkout = asyncHandler(async (req, res) => {
     throw new Error("Workout not found");
   }
 
-  const i = parseInt(index);
-  if (isNaN(i) || i < 0 || i >= workout.exercise.length) {
-    res.status(400);
-    throw new Error("Invalid exercise index");
+  // Find the exercise in the workout by exerciseId
+  const exerciseIndex = workout.exercise.findIndex(
+    (ex) => ex.exercise.toString() === exerciseId
+  );
+
+  if (exerciseIndex === -1) {
+    res.status(404);
+    throw new Error("Exercise not found in the workout");
   }
 
-  if (sets !== undefined) workout.exercise[i].sets = sets;
-  if (reps !== undefined) workout.exercise[i].reps = reps;
-  if (duration !== undefined) workout.exercise[i].duration = duration;
+  const exercise = workout.exercise[exerciseIndex];
+
+  if (sets !== undefined) exercise.sets = sets;
+  if (reps !== undefined) exercise.reps = reps;
+  if (duration !== undefined) exercise.duration = duration;
 
   await workout.save();
   res.status(200).json(workout);
@@ -193,10 +199,10 @@ const updateExerciseInWorkout = asyncHandler(async (req, res) => {
 
 // ** New: Delete an exercise from a workout **
 // @desc Delete an exercise from a workout
-// @route DELETE /api/workouts/:workoutId/exercises/:index
+// @route DELETE /api/workouts/:workoutId/exercises/:exerciseId
 // @access Private
 const deleteExerciseFromWorkout = asyncHandler(async (req, res) => {
-  const { workoutId, index } = req.params;
+  const { workoutId, exerciseId } = req.params;
 
   const workout = await Workout.findOne({ _id: workoutId, user: req.user._id });
   if (!workout) {
@@ -204,14 +210,19 @@ const deleteExerciseFromWorkout = asyncHandler(async (req, res) => {
     throw new Error("Workout not found");
   }
 
-  const i = parseInt(index);
-  if (isNaN(i) || i < 0 || i >= workout.exercise.length) {
-    res.status(400);
-    throw new Error("Invalid exercise index");
+  // Find the exercise in the workout by exerciseId
+  const exerciseIndex = workout.exercise.findIndex(
+    (ex) => ex.exercise.toString() === exerciseId
+  );
+
+  if (exerciseIndex === -1) {
+    res.status(404);
+    throw new Error("Exercise not found in the workout");
   }
 
-  workout.exercise.splice(i, 1); // remove exercise at index
+  workout.exercise.splice(exerciseIndex, 1); // remove exercise by exerciseId
   await workout.save();
+
   res.status(200).json(workout);
 });
 
