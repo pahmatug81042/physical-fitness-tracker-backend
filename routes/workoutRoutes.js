@@ -7,6 +7,8 @@ const {
   updateWorkout,
   deleteWorkout,
   addExerciseToWorkout,
+  updateExerciseInWorkout,
+  deleteExerciseFromWorkout,
 } = require("../controllers/workoutController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -25,9 +27,15 @@ router
   .put(updateWorkout)  // Update workout (title/date)
   .delete(deleteWorkout); // Delete workout
 
-// ✅ Dedicated route to add exercises to a workout
+// Dedicated route to add exercises to a workout
 router
   .route("/:id/exercises")
   .put(addExerciseToWorkout);
+
+// New routes for updating/deleting an exercise inside a workout
+router
+  .route("/:workoutId/exercises/:index")
+  .put(updateExerciseInWorkout)      // Update exercise in workout
+  .delete(deleteExerciseFromWorkout); // Delete exercise from workout
 
 module.exports = router;
