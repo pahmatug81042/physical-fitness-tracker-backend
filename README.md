@@ -4,6 +4,14 @@ This is the backend server for the **Fitness Tracker** full stack application. I
 
 ---
 
+RapidAPI :- https://rapidapi.com/hub?utm_source=youtube.com%2FJavaScriptMastery&utm_medium=referral&utm_campaign=DevRel
+
+RapidAPI ExerciseDB :- https://rapidapi.com/justin-WFnsXH_t6/api/exercisedb?utm_source=youtube.com%2FJavaScriptMastery&utm_medium=referral&utm_campaign=DevRel
+
+RapidAPI YouTube Search :- https://rapidapi.com/h0p3rwe/api/youtube-search-and-download?utm_source=youtube.com%2FJavaScriptMastery&utm_medium=referral&utm_campaign=DevRel
+
+---
+
 Here's the GitHub Repository for Frontend using React + Vite + JavaScript, and Vanilla CSS: https://github.com/pahmatug81042/physical-fitness-tracker-frontend/tree/main
 
 ---
